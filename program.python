@@ -1,0 +1,80 @@
+#this makes the gangway
+walk=box(pos=vector(0,-.1,0), size=vector(6,.2,1))
+
+#Jim and Naomi are spheres.  Deal with it.
+jim=sphere(pos=vector(.7,.4,0), radius=0.4, color=color.yellow)
+naomi=sphere(pos=vector(-.3,.38,0), radius=0.38,color=color.red)
+
+#of course, you need a string too
+string=cylinder(pos=jim.pos, axis=naomi.pos-jim.pos, radius=0.03)
+
+#guessing at the masses.  I hope I don't insult anyone
+jim.m=75
+naomi.m=65
+
+#setting the initial momentum vectors
+jim.p=jim.m*vector(-.1,.2,0)
+naomi.p=naomi.m*vector(-.15,.25,0)
+
+
+#starting time and time step
+t=0
+dt=0.01
+
+#this is the force of the push - zero for now because
+#Jim is waiting to connec the cable to Naomi
+F=vector(0,0,0)
+
+#this is how long he pushes for
+Ft=0.3
+
+#this is how long he waits before the push
+twait=3
+
+#g is just to get a reasonable estimate of push force
+g=9.8
+Fpush=.3*jim.m*g
+#Fscale is a value used to make sure the force arrows don't look stupid
+Fscale=1
+
+#tball is a temp ball I use to cheat and make the scene scale correctly
+#I'm a cheater.
+tball=sphere(pos=vector(-3,5,0), radius=0.001)
+
+#these are the force arrows - just for fun
+Fn=arrow(pos=naomi.pos, axis=vector(0,0,0), visible=False)
+Fj=arrow(pos=jim.pos, axis=vector(0,0,0), visible=False)
+
+#loop for the calculations
+while t<5:
+    rate(100)
+    #r is the vector from jim to naomi - used for the rope and the force
+    r=naomi.pos-jim.pos
+    #if the time is right, push
+    if t>twait and t<(twait+Ft):
+        #turn on the forces
+        F=Fpush*norm(r+vector(0,1,0))
+        Fn.visible=True
+        Fj.visible=True
+    else:
+        #turn off the forces
+        F=vector(0,0,0)
+        Fn.visible=False
+        Fj.visible=False
+
+    #update momentum
+    naomi.p=naomi.p+F*dt
+    jim.p=jim.p-F*dt
+    #update position
+    jim.pos=jim.pos+jim.p*dt/jim.m
+    naomi.pos=naomi.pos+naomi.p*dt/naomi.m
+    #update string
+    string.pos=jim.pos
+    #update force arrows
+    Fn.pos=naomi.pos
+    Fj.pos=jim.pos
+    Fn.axis=Fscale*norm(F)
+    Fj.axis=-Fscale*norm(F)
+
+    string.axis=r
+    t=t+dt
